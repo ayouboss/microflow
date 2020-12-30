@@ -4,7 +4,8 @@ import axios from 'axios';
 import { Promise } from 'bluebird';
 import { transform, setOnPath } from './utils';
 import { WorkflowInterpreter } from './interpreter';
-import { DefaultStorage } from './storage';
+//import { DefaultStorage } from './storage';
+import { PgStorage } from './storage/pgsql';
 import {
   MicroflowStorage,
   TaskInput,
@@ -27,7 +28,7 @@ export class Microflow {
   constructor(config: MicroflowConfig | null) {
     const { storage } = config || {};
     if (!storage) {
-      this.storage = new DefaultStorage();
+      this.storage = new PgStorage();
     } else {
       this.storage = storage;
     }
@@ -92,8 +93,9 @@ export class Microflow {
     const fetchMachine = this._getMachine(definition);
     const { initialState } = fetchMachine;
     const { id: instanceId } = await this.storage.createWorkflowInstance({
+      workflow_id: workflowId,
       currentJson: initialState,
-      definition
+     // definition
     });
     return { id: instanceId };
   }
@@ -102,14 +104,18 @@ export class Microflow {
     instanceId: string,
     event: WorkflowEvent
   ): Promise<SendEventResponse> {
-    const { definition, currentJson } = await this.storage.getWorkflowInstance(
+    const { workflow_id, currentJson } = await this.storage.getWorkflowInstance(
       instanceId
+    );
+    const { definition } = await this.storage.getWorkflow(
+      workflow_id
     );
     const fetchMachine = this._getMachine(definition);
     const previousState = State.create(currentJson) as State<
       any,
       WorkflowEvent
     >;
+    console.log(previousState)
     const resolvedState = fetchMachine.resolveState(previousState);
     if (resolvedState.done)
       return {
@@ -129,7 +135,8 @@ export class Microflow {
             await this.storage.updateWorkflowInstance({
               id: instanceId,
               currentJson: state,
-              definition
+              workflow_id: workflow_id
+             // definition
             });
             res({
               currentState: state.value,

@@ -10,7 +10,8 @@ export interface TaskInput {
 }
 
 export interface WorkflowInstanceInput {
-  definition: any;
+  workflow_id: string;
+ // definition: any;
   currentJson: any;
 }
 
@@ -27,7 +28,8 @@ export interface Task {
 
 export interface WorkflowInstance {
   id: string;
-  definition: any;
+  workflow_id: string;
+  //definition: any;
   currentJson: any;
 }
 

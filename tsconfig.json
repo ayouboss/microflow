@@ -7,7 +7,9 @@
     "moduleResolution": "node",
     "module": "commonjs",
     "allowJs": true,
-    "target": "ES2018"
+    "target": "ES2018",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true
   },
   "include": ["./src/**/*"]
 }
